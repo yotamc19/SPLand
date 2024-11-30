@@ -96,7 +96,8 @@ EconomySelection *EconomySelection::clone() const {}
 SustainabilitySelection::SustainabilitySelection()
     : lastSelectedIndex(-1) {}
 
-const FacilityType &SustainabilitySelection::selectFacility(const vector<FacilityType> &facilitiesOptions) {
+const FacilityType &SustainabilitySelection::selectFacility(const vector<FacilityType> &facilitiesOptions)
+{
     if (facilitiesOptions.size() == 0)
     {
         throw std::invalid_argument("Recieved empty vector");
@@ -119,11 +120,10 @@ const FacilityType &SustainabilitySelection::selectFacility(const vector<Facilit
     return facilitiesOptions[lastSelectedIndex];
 }
 
-const string SustainabilitySelection::toString() const {
+const string SustainabilitySelection::toString() const
+{
 }
 
 SustainabilitySelection *SustainabilitySelection::clone() const {}
-
-
 
 // we should add clone and tostring functions :)

@@ -13,13 +13,13 @@ enum class SettlementType {
 };
 
 class Settlement {
-    public:
-        Settlement(const string &name, SettlementType type);
-        const string &getName() const;
-        SettlementType getType() const;
-        const string toString() const;
+   public:
+    Settlement(const string &name, SettlementType type);
+    const string &getName() const;
+    SettlementType getType() const;
+    const string toString() const;
 
-        private:
-            const string name;
-            SettlementType type;
+   private:
+    const string name;
+    SettlementType type;
 };

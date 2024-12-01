@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "Simulation.h"
+
 enum class SettlementType;
 enum class FacilityCategory;
 

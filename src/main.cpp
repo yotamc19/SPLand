@@ -1,11 +1,11 @@
-// #include "Simulation.h"
 #include <iostream>
 
 #include "Facility.h"
 #include "Settlement.h"
+#include "Simulation.h"
 
 using namespace std;
-// Simulation* backup = nullptr;
+Simulation* backup = nullptr;
 
 int main(int argc, char** argv) {
     if (argc != 2) {
@@ -23,11 +23,12 @@ int main(int argc, char** argv) {
     }
 
     string configurationFile = argv[1];
-    // Simulation simulation(configurationFile);
-    // simulation.start();
-    // if(backup!=nullptr){
-    // 	delete backup;
-    // 	backup = nullptr;
-    // }
+    cout << configurationFile << endl;
+    Simulation simulation(configurationFile);
+    simulation.start();
+    if (backup != nullptr) {
+        delete backup;
+        backup = nullptr;
+    }
     return 0;
 }

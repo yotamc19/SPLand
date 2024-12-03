@@ -16,15 +16,16 @@ class Plan {
     Plan(const int planId, const Settlement &settlement,
          SelectionPolicy *selectionPolicy,
          const vector<FacilityType> &facilityOptions);
-    const int getlifeQualityScore() const;
-    const int getEconomyScore() const;
-    const int getEnvironmentScore() const;
+    int getlifeQualityScore() const;
+    int getEconomyScore() const;
+    int getEnvironmentScore() const;
     void setSelectionPolicy(SelectionPolicy *selectionPolicy);
     void step();
     void printStatus();
     const vector<Facility *> &getFacilities() const;
     void addFacility(Facility *facility);
     const string toString() const;
+    const Settlement &getSettlement();
 
    private:
     int plan_id;

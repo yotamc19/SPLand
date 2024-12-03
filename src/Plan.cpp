@@ -18,47 +18,48 @@ Plan::Plan(const int planId, const Settlement &settlement,
       economy_score(economy_score),
       environment_score(environment_score) {}
 
-const int Plan::getlifeQualityScore() const { return life_quality_score; }
+int Plan::getlifeQualityScore() const { return life_quality_score; }
 
-const int Plan::getEconomyScore() const { return economy_score; }
+int Plan::getEconomyScore() const { return economy_score; }
 
-const int Plan::getEnvironmentScore() const { return environment_score; }
+int Plan::getEnvironmentScore() const { return environment_score; }
 
 void Plan::setSelectionPolicy(SelectionPolicy *selectionPolicy) {
     (*this).selectionPolicy = selectionPolicy;
 }
 
 void Plan::step() {
-    int tempSize = underConstruction.size();
-    Facility *temp[tempSize];
-    for (int i = 0; i < tempSize; i++) {
-        temp[i] = underConstruction[i];
+    SettlementType settlementType = settlement.getType();
+    int maxCapacity = 1;
+    if (settlementType == SettlementType::CITY) {
+        maxCapacity = 2;
+    } else if (settlementType == SettlementType::METROPOLIS) {
+        maxCapacity = 3;
     }
 
+    int numOfFacilitiesToAdd = maxCapacity - underConstruction.size();
+
+    vector<Facility*> temp;
     while (underConstruction.size() != 0) {
+        Facility* toInsert(underConstruction[underConstruction.size() - 1]);
+        FacilityStatus fs = (*toInsert).step();
+
+        if (fs == FacilityStatus::OPERATIONAL) {
+            facilities.push_back(toInsert);
+        } else {
+            temp.push_back(toInsert);
+        }
+
         underConstruction.pop_back();
     }
 
-    for (int i = 0; i < tempSize; i++) {
-        FacilityStatus status = (*temp[i]).step();
-        if (status == FacilityStatus::OPERATIONAL) {
-            facilities.push_back(temp[i]);
-            life_quality_score += (*temp[i]).getLifeQualityScore();
-            economy_score += (*temp[i]).getEconomyScore();
-            environment_score += (*temp[i]).getEnvironmentScore();
-        } else {
-            underConstruction.push_back(temp[i]);
-        }
+    for (int i = 0; i < numOfFacilitiesToAdd; i++) {
+        Facility *f = new Facility((*selectionPolicy).selectFacility(facilityOptions), settlement.getName());
+        // implement rule of 5
+        addFacility(f);
     }
 
-    SettlementType setType = settlement.getType();
-    int setMaxCapacity = 1;
-    if (setType == SettlementType::CITY) {
-        setMaxCapacity = 2;
-    } else if (setType == SettlementType::METROPOLIS) {
-        setMaxCapacity = 3;
-    }
-    if (setMaxCapacity == underConstruction.size()) {
+    if (maxCapacity == underConstruction.size()) {
         status = PlanStatus::BUSY;
     } else {
         status = PlanStatus::AVALIABLE;
@@ -117,3 +118,5 @@ const string Plan::toString() const {
 
     return finalStr;
 }
+
+const Settlement &Plan::getSettlement() { return settlement; }

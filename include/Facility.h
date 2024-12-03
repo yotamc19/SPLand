@@ -44,7 +44,7 @@ class Facility : public FacilityType {
              const int environment_score);
     Facility(const FacilityType &type, const string &settlementName);
     const string &getSettlementName() const;
-    const int getTimeLeft() const;
+    int getTimeLeft() const;
     FacilityStatus step();
     void setStatus(FacilityStatus status);
     const FacilityStatus &getStatus() const;

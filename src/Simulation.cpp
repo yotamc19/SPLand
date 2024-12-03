@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 
+#include "Action.h"
 #include "Auxiliary.h"
 #include "Facility.h"
 #include "SelectionPolicy.h"
@@ -36,7 +37,8 @@ Simulation::Simulation(const string &configFilePath) {
             facilitiesOptions.push_back(ft);
         } else {  // plan
             string settlementName = parsedArgs[1];
-            Settlement s = Simulation::getSettlement(settlementName);
+            // settlement name might not be in the simulation yet or at all
+            Settlement s(Simulation::getSettlement(settlementName));
 
             if (parsedArgs[2] == "nai") {
                 NaiveSelection ns;
@@ -60,7 +62,66 @@ Simulation::Simulation(const string &configFilePath) {
     }
 }
 
-void Simulation::start() {}
+void Simulation::start() {
+    open();
+    cout << "The simulation has started" << endl;
+
+    while (isRunning) {
+        string line;
+        getline(cin, line);
+        vector<string> parsedArgs = Auxiliary::parseArguments(line);
+        if (parsedArgs[0] == "step") {
+            int numOfSteps = stoi(parsedArgs[1]);
+            SimulateStep action = SimulateStep(numOfSteps);
+            action.act(*this);
+        } else if (parsedArgs[0] == "plan") {
+            string settlementName = parsedArgs[1];
+            string settlementPolicy = parsedArgs[2];
+            AddPlan action = AddPlan(settlementName, settlementPolicy);
+            action.act(*this);
+        } else if (parsedArgs[0] == "settlement") {
+            string settlementName = parsedArgs[1];
+            SettlementType settlementType =
+                static_cast<SettlementType>(stoi(parsedArgs[2]));
+            AddSettlement action =
+                AddSettlement(settlementName, settlementType);
+            action.act(*this);
+        } else if (parsedArgs[0] == "facility") {
+            string facilityName = parsedArgs[1];
+            FacilityCategory facilityCategory =
+                static_cast<FacilityCategory>(stoi(parsedArgs[2]));
+            int price = stoi(parsedArgs[3]);
+            int lifeQualityScore = stoi(parsedArgs[4]);
+            int economyScore = stoi(parsedArgs[5]);
+            int environmentScore = stoi(parsedArgs[6]);
+            AddFacility action =
+                AddFacility(facilityName, facilityCategory, price,
+                            lifeQualityScore, economyScore, environmentScore);
+            action.act(*this);
+        } else if (parsedArgs[0] == "planStatus") {
+            int planId = stoi(parsedArgs[1]);
+            PrintPlanStatus action = PrintPlanStatus(planId);
+            action.act(*this);
+        } else if (parsedArgs[0] == "changePolicy") {
+            int planId = stoi(parsedArgs[1]);
+            string newPolicy = parsedArgs[2];
+            ChangePlanPolicy action = ChangePlanPolicy(planId, newPolicy);
+            action.act(*this);
+        } else if (parsedArgs[0] == "log") {
+            PrintActionsLog action = PrintActionsLog();
+            action.act(*this);
+        } else if (parsedArgs[0] == "close") {
+            Close action = Close();
+            action.act(*this);
+        } else if (parsedArgs[0] == "backup") {
+            BackupSimulation action = BackupSimulation();
+            action.act(*this);
+        } else if (parsedArgs[0] == "restore") {
+            RestoreSimulation action = RestoreSimulation();
+            action.act(*this);
+        }
+    }
+}
 
 void Simulation::addPlan(const Settlement &settlement,
                          SelectionPolicy *selectionPolicy) {
@@ -82,14 +143,11 @@ bool Simulation::addSettlement(Settlement settlement) {
 }
 
 bool Simulation::addFacility(FacilityType facility) {
-    bool isFacilityExistsAlready = false;
-    int i = 0;
-    while (!isFacilityExistsAlready) {
-        isFacilityExistsAlready =
-            facility.getName() == facilitiesOptions[i].getName();
-        i++;
+    bool isFacilityExists = false;
+    for (int i = 0; i < facilitiesOptions.size() && !isFacilityExists; i++) {
+        isFacilityExists = facility.getName() == facilitiesOptions[i].getName();
     }
-    if (isFacilityExistsAlready) {
+    if (isFacilityExists) {
         return false;
     }
     facilitiesOptions.push_back(facility);
@@ -98,26 +156,41 @@ bool Simulation::addFacility(FacilityType facility) {
 
 bool Simulation::isSettlementExists(const string &settlementName) {
     bool isSettlementExists = false;
-    int i = 0;
-    while (!isSettlementExists && i < settlements.size()) {
+    for (int i = 0; i < settlements.size() && !isSettlementExists; i++) {
         isSettlementExists = settlementName == settlements[i].getName();
-        i++;
     }
     return isSettlementExists;
 }
 
-Settlement &Simulation::getSettlement(const string &settlementName) {
-    int i = 0;
-    bool isSettlementFound = false;
-    while (!isSettlementFound) {
-        isSettlementFound = settlementName == settlements[i].getName();
-        i++;
+bool Simulation::isFacilityExists(const string &facilityName) {
+    bool isFacilityExists = false;
+    for (int i = 0; i < facilitiesOptions.size() && !isFacilityExists; i++) {
+        isFacilityExists = facilityName == facilitiesOptions[i].getName();
     }
-    Settlement &s = settlements[i - 1];
-    return s;
+    return isFacilityExists;
 }
 
-Plan &Simulation::getPlan(const int planID) { return plans[planID]; }
+Settlement &Simulation::getSettlement(const string &settlementName) {
+    bool isSettlementFound = false;
+    for (int i = 0; i < settlements.size() && !isSettlementExists; i++) {
+        isSettlementFound = settlementName == settlements[i].getName();
+        if (isSettlementFound) {
+            Settlement &s(settlements[i]);
+            return s;
+        }
+    }
+    throw invalid_argument(
+        "No settlement with this name exists in the simulation");
+}
+
+Plan &Simulation::getPlan(const int planID) {
+    if (planID >= plans.size()) {
+        throw invalid_argument("No plan with this planID exists");
+    }
+    return plans[planID];
+}
+
+const vector<BaseAction *> &Simulation::getActionsLog() { return actionsLog; }
 
 void Simulation::step() {
     for (int i = 0; i < plans.size(); i++) {
@@ -125,8 +198,15 @@ void Simulation::step() {
     }
 }
 
-void Simulation::close() {}
+void Simulation::close() {
+    string summary = "";
+    for (int i = 0; i < plans.size(); i++) {
+        summary += "PlanID: " + to_string(i) + "\nSettlementName: " + plans[0].getSettlement().getName() + "\nLifeQualityScore: " + to_string(plans[0].getlifeQualityScore()) + "\nEconomyScore: " + to_string(plans[0].getEconomyScore()) + "\nEnvironmentScore: " + to_string(plans[0].getEnvironmentScore()) + "\n";
+    }
+    cout << summary << endl;
+    isRunning = false;
+}
 
-void Simulation::open() {}
-
-// finish start and close and open :)
+void Simulation::open() {
+    isRunning = true;
+}

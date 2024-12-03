@@ -57,9 +57,13 @@ const FacilityType &BalancedSelection::selectFacility(
     return facilitiesOptions[bestOptionIndex];
 }
 
-const string BalancedSelection::toString() const {}
+const string BalancedSelection::toString() const {
+    return "Balanced selection policy";
+}
 
-BalancedSelection *BalancedSelection::clone() const {}
+BalancedSelection *BalancedSelection::clone() const {
+    return new BalancedSelection(*this);
+}
 
 // ECONOMY SELECTION:
 EconomySelection::EconomySelection() : lastSelectedIndex(-1) {}
@@ -88,9 +92,13 @@ const FacilityType &EconomySelection::selectFacility(
     return facilitiesOptions[lastSelectedIndex];
 }
 
-const string EconomySelection::toString() const {}
+const string EconomySelection::toString() const {
+    return "Economy selection policy";
+}
 
-EconomySelection *EconomySelection::clone() const {}
+EconomySelection *EconomySelection::clone() const {
+    return new EconomySelection(*this);
+}
 
 // SUSTAINABILITY SELECTION:
 SustainabilitySelection::SustainabilitySelection() : lastSelectedIndex(-1) {}
@@ -120,8 +128,10 @@ const FacilityType &SustainabilitySelection::selectFacility(
     return facilitiesOptions[lastSelectedIndex];
 }
 
-const string SustainabilitySelection::toString() const {}
+const string SustainabilitySelection::toString() const {
+    return "Sustainability selection policy";
+}
 
-SustainabilitySelection *SustainabilitySelection::clone() const {}
-
-// we should add clone and tostring functions :)
+SustainabilitySelection *SustainabilitySelection::clone() const {
+    return new SustainabilitySelection(*this);
+}

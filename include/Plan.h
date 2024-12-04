@@ -16,6 +16,8 @@ class Plan {
     Plan(const int planId, const Settlement &settlement,
          SelectionPolicy *selectionPolicy,
          const vector<FacilityType> &facilityOptions);
+    Plan(const Plan& other);
+    Plan& operator=(const Plan& other);
     int getlifeQualityScore() const;
     int getEconomyScore() const;
     int getEnvironmentScore() const;
@@ -26,6 +28,7 @@ class Plan {
     void addFacility(Facility *facility);
     const string toString() const;
     const Settlement &getSettlement();
+    ~Plan();
 
    private:
     int plan_id;

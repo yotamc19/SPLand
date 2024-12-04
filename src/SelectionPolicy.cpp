@@ -37,7 +37,8 @@ const FacilityType &BalancedSelection::selectFacility(
         throw std::invalid_argument("Recieved empty vector");
     }
     int bestOptionIndex = 0, bestDistance = INT32_MAX;
-    for (int i = 0; i < facilitiesOptions.size(); i++) {
+    int size = facilitiesOptions.size();
+    for (int i = 0; i < size; i++) {
         // Calculating the distance caused by the current option
         int tempLifeScore =
             LifeQualityScore + facilitiesOptions[i].getLifeQualityScore();
@@ -45,8 +46,9 @@ const FacilityType &BalancedSelection::selectFacility(
             EconomyScore + facilitiesOptions[i].getEconomyScore();
         int tempEnvScore =
             EnvironmentScore + facilitiesOptions[i].getEnvironmentScore();
-        int tempDistance = std::max(tempLifeScore, tempEcoScore, tempEnvScore) -
-                           std::min(tempLifeScore, tempEcoScore, tempEnvScore);
+        int tempDistance =
+            std::max(std::max(tempLifeScore, tempEcoScore), tempEnvScore) -
+            std::min(std::min(tempLifeScore, tempEcoScore), tempEnvScore);
 
         // Dictating the next distance for the choice
         if (tempDistance < bestDistance) {
@@ -79,7 +81,8 @@ const FacilityType &EconomySelection::selectFacility(
     // reached
     int i = 0;
     bool isReachedEconomy = false;
-    for (; i < facilitiesOptions.size() && !isReachedEconomy; i++) {
+    int size = facilitiesOptions.size();
+    for (; i < size && !isReachedEconomy; i++) {
         isReachedEconomy = facilitiesOptions[(i + lastSelectedIndex) %
                                              facilitiesOptions.size()]
                                .getCategory() == FacilityCategory::ECONOMY;
@@ -114,7 +117,8 @@ const FacilityType &SustainabilitySelection::selectFacility(
     // cycle is reached
     int i = 0;
     bool isReachedEnvironment = false;
-    for (; i < facilitiesOptions.size() && !isReachedEnvironment; i++) {
+    int size = facilitiesOptions.size();
+    for (; i < size && !isReachedEnvironment; i++) {
         isReachedEnvironment =
             facilitiesOptions[(i + lastSelectedIndex) %
                               facilitiesOptions.size()]

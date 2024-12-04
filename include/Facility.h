@@ -20,12 +20,15 @@ class FacilityType {
     FacilityType(const string &name, const FacilityCategory category,
                  const int price, const int lifeQuality_score,
                  const int economy_score, const int environment_score);
+    FacilityType(const FacilityType& other);
+    FacilityType& operator=(const FacilityType& other); //COME BACK TO THIS
     const string &getName() const;
     int getCost() const;
     int getLifeQualityScore() const;
     int getEnvironmentScore() const;
     int getEconomyScore() const;
     FacilityCategory getCategory() const;
+    virtual ~FacilityType() = default;
 
    protected:
     const string name;
@@ -43,12 +46,15 @@ class Facility : public FacilityType {
              const int lifeQuality_score, const int economy_score,
              const int environment_score);
     Facility(const FacilityType &type, const string &settlementName);
+    Facility(const Facility& other);
+    Facility& operator=(const Facility& other);
     const string &getSettlementName() const;
     int getTimeLeft() const;
     FacilityStatus step();
     void setStatus(FacilityStatus status);
     const FacilityStatus &getStatus() const;
     const string toString() const;
+    ~Facility() = default;
 
    private:
     const string settlementName;

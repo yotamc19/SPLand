@@ -16,6 +16,7 @@ Simulation::Simulation(const string &configFilePath) {
     string line;
     planCounter = 0;
     while (getline(configFile, line)) {
+        cout << line << endl;
         vector<string> parsedArgs = Auxiliary::parseArguments(line);
         string argType = parsedArgs[0];
         if (argType == "Settlement") {
@@ -35,7 +36,7 @@ Simulation::Simulation(const string &configFilePath) {
             FacilityType ft(name, category, price, lifeQualityScore,
                             economyScore, environmentScore);
             facilitiesOptions.push_back(ft);
-        } else {  // plan
+        } else if (argType == "plan") {
             string settlementName = parsedArgs[1];
             // settlement name might not be in the simulation yet or at all
             Settlement s(Simulation::getSettlement(settlementName));
@@ -133,9 +134,9 @@ void Simulation::addPlan(const Settlement &settlement,
 void Simulation::addAction(BaseAction *action) { actionsLog.push_back(action); }
 
 bool Simulation::addSettlement(Settlement settlement) {
-    bool isSettlementExists =
+    bool isSettlementFound =
         Simulation::isSettlementExists(settlement.getName());
-    if (isSettlementExists) {
+    if (isSettlementFound) {
         return false;
     }
     settlements.push_back(settlement);
@@ -144,7 +145,8 @@ bool Simulation::addSettlement(Settlement settlement) {
 
 bool Simulation::addFacility(FacilityType facility) {
     bool isFacilityExists = false;
-    for (int i = 0; i < facilitiesOptions.size() && !isFacilityExists; i++) {
+    int size = facilitiesOptions.size();
+    for (int i = 0; i < size && !isFacilityExists; i++) {
         isFacilityExists = facility.getName() == facilitiesOptions[i].getName();
     }
     if (isFacilityExists) {
@@ -155,16 +157,18 @@ bool Simulation::addFacility(FacilityType facility) {
 }
 
 bool Simulation::isSettlementExists(const string &settlementName) {
-    bool isSettlementExists = false;
-    for (int i = 0; i < settlements.size() && !isSettlementExists; i++) {
-        isSettlementExists = settlementName == settlements[i].getName();
+    bool isSettlementFound = false;
+    int size = settlements.size();
+    for (int i = 0; i < size && !isSettlementFound; i++) {
+        isSettlementFound = settlementName == settlements[i].getName();
     }
-    return isSettlementExists;
+    return isSettlementFound;
 }
 
 bool Simulation::isFacilityExists(const string &facilityName) {
     bool isFacilityExists = false;
-    for (int i = 0; i < facilitiesOptions.size() && !isFacilityExists; i++) {
+    int size = facilitiesOptions.size();
+    for (int i = 0; i < size && !isFacilityExists; i++) {
         isFacilityExists = facilityName == facilitiesOptions[i].getName();
     }
     return isFacilityExists;
@@ -172,8 +176,11 @@ bool Simulation::isFacilityExists(const string &facilityName) {
 
 Settlement &Simulation::getSettlement(const string &settlementName) {
     bool isSettlementFound = false;
-    for (int i = 0; i < settlements.size() && !isSettlementExists; i++) {
+    int size = settlements.size();
+    cout << to_string(size) << endl;
+    for (int i = 0; i < size && !isSettlementFound; i++) {
         isSettlementFound = settlementName == settlements[i].getName();
+        cout << isSettlementFound << endl;
         if (isSettlementFound) {
             Settlement &s(settlements[i]);
             return s;
@@ -184,7 +191,8 @@ Settlement &Simulation::getSettlement(const string &settlementName) {
 }
 
 Plan &Simulation::getPlan(const int planID) {
-    if (planID >= plans.size()) {
+    int size = plans.size();
+    if (planID >= size) {
         throw invalid_argument("No plan with this planID exists");
     }
     return plans[planID];
@@ -193,14 +201,16 @@ Plan &Simulation::getPlan(const int planID) {
 const vector<BaseAction *> &Simulation::getActionsLog() { return actionsLog; }
 
 void Simulation::step() {
-    for (int i = 0; i < plans.size(); i++) {
+    int size = plans.size();
+    for (int i = 0; i < size; i++) {
         plans[i].step();
     }
 }
 
 void Simulation::close() {
     string summary = "";
-    for (int i = 0; i < plans.size(); i++) {
+    int size = plans.size();
+    for (int i = 0; i < size; i++) {
         summary += "PlanID: " + to_string(i) + "\nSettlementName: " + plans[0].getSettlement().getName() + "\nLifeQualityScore: " + to_string(plans[0].getlifeQualityScore()) + "\nEconomyScore: " + to_string(plans[0].getEconomyScore()) + "\nEnvironmentScore: " + to_string(plans[0].getEnvironmentScore()) + "\n";
     }
     cout << summary << endl;

@@ -158,7 +158,7 @@ ChangePlanPolicy::ChangePlanPolicy(const int planId, const string& newPolicy)
     : planId(planId), newPolicy(newPolicy) {}
 
 void ChangePlanPolicy::act(Simulation& simulation) {
-    Plan p = simulation.getPlan(planId);
+    Plan p(simulation.getPlan(planId));
     if (newPolicy == "nai") {
         NaiveSelection ns;
         p.setSelectionPolicy(&ns);

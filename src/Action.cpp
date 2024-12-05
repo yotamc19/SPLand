@@ -55,10 +55,7 @@ AddPlan::AddPlan(const string& settlementName, const string& selectionPolicy)
     : settlementName(settlementName), selectionPolicy(selectionPolicy) {}
 
 void AddPlan::act(Simulation& simulation) {
-    cout << toString() << endl;
-
-    // Checking if there is already a plan for said settlement?         COME
-    // BACK
+    // Checking if there is already a plan for said settlement?
     bool isSettlementExists = simulation.isSettlementExists(settlementName);
     if (!isSettlementExists) {
         error("No settlement exists in the simulation");

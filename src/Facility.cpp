@@ -21,7 +21,10 @@ FacilityType::FacilityType(const FacilityType &other)  // Copy constructor
       price(other.price),
       lifeQuality_score(other.lifeQuality_score),
       economy_score(other.economy_score),
-      environment_score(other.environment_score) {}
+      environment_score(other.environment_score) {
+    cout << "inside facilitytype copy" << endl;
+}
+
 FacilityType &FacilityType::operator=(const FacilityType &other) {
     return (*this);
 }
@@ -31,7 +34,10 @@ const string &FacilityType::getName() const { return name; }
 
 FacilityCategory FacilityType::getCategory() const { return category; }
 
-int FacilityType::getCost() const { return price; }
+int FacilityType::getCost() const {
+    cout << "inside getcost" << endl;
+    return price;
+}
 
 int FacilityType::getLifeQualityScore() const { return environment_score; }
 
@@ -52,10 +58,13 @@ Facility::Facility(const string &name, const string &settlementName,
       timeLeft(price) {}
 
 Facility::Facility(const FacilityType &type, const string &settlementName)
-    : FacilityType(type),
-      settlementName(settlementName),
-      status(FacilityStatus::UNDER_CONSTRUCTIONS),
-      timeLeft(type.getCost()) {}
+    : settlementName(settlementName), FacilityType(type) {
+    cout << "1" << endl;
+    status = FacilityStatus::UNDER_CONSTRUCTIONS;
+    cout << "2" << endl;
+    timeLeft = type.getCost();
+    cout << "3" << endl;
+}
 
 Facility::Facility(const Facility &other)  // Copy constructor
     : FacilityType(other),

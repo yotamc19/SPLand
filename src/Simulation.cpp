@@ -17,17 +17,17 @@ Simulation::Simulation(const string &configFilePath) {
     planCounter = 0;
     // Initiating the values given from the configFile into Simulation's fields
     while (getline(configFile, line)) {
-        cout << "line: " + line << endl;
+        cout << line << endl;
         vector<string> parsedArgs = Auxiliary::parseArguments(line);
         string argType = parsedArgs[0];
 
-        if (argType == "Settlement") {
+        if (argType == "settlement") {
             string name = parsedArgs[1];
             SettlementType type =
                 static_cast<SettlementType>(stoi(parsedArgs[2]));
             Settlement s(name, type);
             settlements.push_back(s);
-        } else if (argType == "Facility") {
+        } else if (argType == "facility") {
             string name = parsedArgs[1];
             FacilityCategory category =
                 static_cast<FacilityCategory>(stoi(parsedArgs[2]));
@@ -45,24 +45,55 @@ Simulation::Simulation(const string &configFilePath) {
 
             if (parsedArgs[2] == "nai") {
                 NaiveSelection ns;
-                Plan p(planCounter, s, &ns, facilitiesOptions);
-                plans.push_back(p);
+                Plan *p = new Plan(planCounter, s, &ns, facilitiesOptions);
+                plans.push_back(*p);
             } else if (parsedArgs[2] == "bal") {
                 BalancedSelection bs(0, 0, 0);
-                Plan p(planCounter, s, &bs, facilitiesOptions);
-                plans.push_back(p);
+                Plan *p = new Plan(planCounter, s, &bs, facilitiesOptions);
+                plans.push_back(*p);
             } else if (parsedArgs[2] == "eco") {
                 EconomySelection es;
-                Plan p(planCounter, s, &es, facilitiesOptions);
-                plans.push_back(p);
+                Plan *p = new Plan(planCounter, s, &es, facilitiesOptions);
+                plans.push_back(*p);
             } else if (parsedArgs[2] == "env") {
                 SustainabilitySelection ss;
-                Plan p(planCounter, s, &ss, facilitiesOptions);
-                plans.push_back(p);
+                Plan *p = new Plan(planCounter, s, &ss, facilitiesOptions);
+                plans.push_back(*p);
             }
             planCounter++;
         }
     }
+}
+
+Simulation::Simulation(const Simulation &other)
+    : isRunning(other.isRunning),
+      actionsLog(other.actionsLog),
+      plans(other.plans),
+      settlements(other.settlements),
+      facilitiesOptions(other.facilitiesOptions) {}
+
+Simulation &Simulation::operator=(const Simulation &other) {
+    if (&other != this) {
+        isRunning = other.isRunning;
+        planCounter = other.planCounter;
+
+        int actionsLogSize = actionsLog.size();
+        for (int i; i < actionsLogSize; i++) {
+            delete actionsLog[i];
+        }
+        actionsLog.clear();
+        int otherActionsLogSize = other.actionsLog.size();
+        for (int i = 0; i < otherActionsLogSize; i++) {
+            if (other.actionsLog[i]) {
+                actionsLog.push_back((*other.actionsLog[i]).clone());
+            }
+        }
+
+        plans = other.plans;
+        settlements = other.settlements;
+        facilitiesOptions = other.facilitiesOptions;
+    }
+    return (*this);
 }
 
 void Simulation::start() {
@@ -194,11 +225,9 @@ bool Simulation::isFacilityExists(const string &facilityName) {
 Settlement &Simulation::getSettlement(const string &settlementName) {
     bool isSettlementFound = false;
     int size = settlements.size();
-    cout << to_string(size) << endl;
     // Searching for settlementName in settlements
     for (int i = 0; i < size && !isSettlementFound; i++) {
         isSettlementFound = settlementName == settlements[i].getName();
-        cout << isSettlementFound << endl;
         if (isSettlementFound) {
             Settlement &s(settlements[i]);
             return s;
@@ -244,3 +273,11 @@ void Simulation::close() {
 }
 
 void Simulation::open() { isRunning = true; }
+
+Simulation::~Simulation() {
+    int actionsLogSize = actionsLog.size();
+    for (int i = 0; i < actionsLogSize; i++) {
+        delete actionsLog[i];
+    }
+    actionsLog.clear();
+}

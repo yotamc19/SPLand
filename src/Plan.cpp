@@ -66,10 +66,12 @@ void Plan::step() {
 
     // Adding as many new facilities as the capacity allows
     while (status == PlanStatus::AVALIABLE) {
-        FacilityType ft = (*selectionPolicy).selectFacility(facilityOptions);
-        Facility *toInsert = new Facility(ft, settlement.getName());
+        FacilityType *ft = new FacilityType((*selectionPolicy).selectFacility(facilityOptions));
+        Facility *toInsert = new Facility(*ft, settlement.getName());
+        cout << "1" << endl;
         (*this).addFacility(toInsert);
     }
+    cout << "kulululu" << endl;
 
     // Updating all of the facilities under construction
     int underConstructionSize = underConstruction.size();
@@ -95,45 +97,6 @@ void Plan::step() {
                   // items all move 1 index 'below'
         }
     }
-
-    // SettlementType settlementType = settlement.getType();
-    // int maxCapacity = 1;
-    // if (settlementType == SettlementType::CITY) {
-    //     maxCapacity = 2;
-    // } else if (settlementType == SettlementType::METROPOLIS) {
-    //     maxCapacity = 3;
-    // }
-
-    // int numOfFacilitiesToAdd = maxCapacity - underConstruction.size();
-
-    // vector<Facility *> temp;
-    // while (underConstruction.size() != 0) {
-    //     Facility *toInsert(underConstruction[underConstruction.size() - 1]);
-    //     FacilityStatus fs = (*toInsert).step();
-
-    //     if (fs == FacilityStatus::OPERATIONAL) {
-    //         facilities.push_back(toInsert);
-    //     } else {
-    //         temp.push_back(toInsert);
-    //     }
-
-    //     underConstruction.pop_back();
-    // }
-
-    // for (int i = 0; i < numOfFacilitiesToAdd; i++) {
-    //     Facility *f =
-    //         new Facility((*selectionPolicy).selectFacility(facilityOptions),
-    //                      settlement.getName());
-    //     // implement rule of 5
-    //     addFacility(f);
-    // }
-
-    // int size = underConstruction.size();
-    // if (maxCapacity == size) {
-    //     status = PlanStatus::BUSY;
-    // } else {
-    //     status = PlanStatus::AVALIABLE;
-    // }
 }
 
 void Plan::printStatus() {
@@ -168,15 +131,16 @@ const string Plan::toString() const {
     }
 
     string stringUnderConstructionFacilities = "";
-    int underConstructionSize = facilityOptions.size();
+    int underConstructionSize = underConstruction.size();
     for (int i = 0; i < underConstructionSize; i++) {
-        stringUnderConstructionFacilities += (*facilities[i]).toString();
+        stringUnderConstructionFacilities += (*underConstruction[i]).toString();
     }
 
     string stringFacilitiesOptions = "";
     int facilityOptionsSize = facilityOptions.size();
     for (int i = 0; i < facilityOptionsSize; i++) {
-        stringFacilitiesOptions += (*facilities[i]).toString();
+        Facility f(facilityOptions[i], settlement.getName());
+        stringFacilitiesOptions += f.toString();
     }
 
     string finalStr =

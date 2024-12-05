@@ -9,7 +9,7 @@ all: clean compile run
 
 # Compile target to build the C++ executable
 compile: Action.o Auxiliary.o Facility.o Plan.o SelectionPolicy.o Settlement.o Simulation.o main.o
-	g++ -o bin/Action.o bin/Auxiliary.o bin/Facility.o bin/Plan.o bin/SelectionPolicy.o bin/Settlement.o bin/Simulation.o bin/main.o
+	g++ -o bin/run bin/Action.o bin/Auxiliary.o bin/Facility.o bin/Plan.o bin/SelectionPolicy.o bin/Settlement.o bin/Simulation.o bin/main.o
 
 Action.o:
 	g++ $(CXXFLAGS) -I include/ -o bin/Action.o -c src/Action.cpp
@@ -37,7 +37,7 @@ main.o:
 
 # Run target to execute the program
 run:
-	./bin/simulation config_file.txt
+	./bin/run config_file.txt
 
 # Clean target to remove the executable
 clean: 

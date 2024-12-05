@@ -14,6 +14,8 @@ class SelectionPolicy;
 class Simulation {
    public:
     Simulation(const string &configFilePath);
+    Simulation(const Simulation& other);
+    Simulation& operator=(const Simulation& other); //COME BACK
     void start();
     void addPlan(const Settlement &settlement,
                  SelectionPolicy *selectionPolicy);
@@ -28,6 +30,7 @@ class Simulation {
     void step();
     void close();
     void open();
+    ~Simulation();
 
    private:
     bool isRunning;

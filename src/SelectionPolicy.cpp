@@ -1,3 +1,5 @@
+using namespace std;
+
 #include "SelectionPolicy.h"
 
 #include <cstdint>
@@ -9,6 +11,9 @@ NaiveSelection::NaiveSelection() : lastSelectedIndex(-1) {}
 
 const FacilityType &NaiveSelection::selectFacility(
     const vector<FacilityType> &facilitiesOptions) {
+    // Selecting the next available facility
+    cout << toString() << endl;
+
     if (facilitiesOptions.size() == 0) {
         throw std::invalid_argument("Recieved empty vector");
     }
@@ -33,6 +38,10 @@ BalancedSelection::BalancedSelection(int LifeQualityScore, int EconomyScore,
 
 const FacilityType &BalancedSelection::selectFacility(
     const vector<FacilityType> &facilitiesOptions) {
+    // Selecting the facility which results in the 'minimal distance' between
+    // the scores
+    cout << toString() << endl;
+
     if (facilitiesOptions.size() == 0) {
         throw std::invalid_argument("Recieved empty vector");
     }
@@ -50,7 +59,7 @@ const FacilityType &BalancedSelection::selectFacility(
             std::max(std::max(tempLifeScore, tempEcoScore), tempEnvScore) -
             std::min(std::min(tempLifeScore, tempEcoScore), tempEnvScore);
 
-        // Dictating the next distance for the choice
+        // Choosing the better distance for the choice
         if (tempDistance < bestDistance) {
             bestDistance = tempDistance;
             bestOptionIndex = i;
@@ -72,6 +81,9 @@ EconomySelection::EconomySelection() : lastSelectedIndex(-1) {}
 
 const FacilityType &EconomySelection::selectFacility(
     const vector<FacilityType> &facilitiesOptions) {
+    // Selecting the next available facility which is also of "Economy" type
+    cout << toString() << endl;
+
     if (facilitiesOptions.size() == 0) {
         throw std::invalid_argument("Recieved empty vector");
     }
@@ -87,7 +99,7 @@ const FacilityType &EconomySelection::selectFacility(
                                              facilitiesOptions.size()]
                                .getCategory() == FacilityCategory::ECONOMY;
     }
-
+    // Checking if a fitting facility was reached
     if (!isReachedEconomy) {
         throw std::invalid_argument("No economy facilities in the vector");
     }
@@ -108,6 +120,9 @@ SustainabilitySelection::SustainabilitySelection() : lastSelectedIndex(-1) {}
 
 const FacilityType &SustainabilitySelection::selectFacility(
     const vector<FacilityType> &facilitiesOptions) {
+    // Selecting the next available facility which is also of "Environment" type
+    cout << toString() << endl;
+
     if (facilitiesOptions.size() == 0) {
         throw std::invalid_argument("Recieved empty vector");
     }
@@ -124,7 +139,7 @@ const FacilityType &SustainabilitySelection::selectFacility(
                               facilitiesOptions.size()]
                 .getCategory() == FacilityCategory::ENVIRONMENT;
     }
-
+    // Checking if a fitting facility was reached
     if (!isReachedEnvironment) {
         throw std::invalid_argument("No environment facilities in the vector");
     }

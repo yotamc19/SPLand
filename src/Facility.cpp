@@ -2,6 +2,9 @@ using namespace std;
 
 #include "Facility.h"
 
+#include <iostream>
+
+// FACILITY_TYPE:
 FacilityType::FacilityType(const string &name, const FacilityCategory category,
                            const int price, const int lifeQuality_score,
                            const int economy_score, const int environment_score)
@@ -12,17 +15,17 @@ FacilityType::FacilityType(const string &name, const FacilityCategory category,
       economy_score(economy_score),
       environment_score(environment_score) {}
 
-FacilityType::FacilityType(const FacilityType &other)
+FacilityType::FacilityType(const FacilityType &other)  // Copy constructor
     : name(other.name),
       category(other.category),
       price(other.price),
       lifeQuality_score(other.lifeQuality_score),
       economy_score(other.economy_score),
       environment_score(other.environment_score) {}
-
 FacilityType &FacilityType::operator=(const FacilityType &other) {
     return (*this);
 }
+// SettlementName is const, fix?
 
 const string &FacilityType::getName() const { return name; }
 
@@ -36,7 +39,7 @@ int FacilityType::getEnvironmentScore() const { return environment_score; }
 
 int FacilityType::getEconomyScore() const { return economy_score; }
 
-// now Facility
+// FACILITY:
 
 Facility::Facility(const string &name, const string &settlementName,
                    const FacilityCategory category, const int price,
@@ -54,25 +57,29 @@ Facility::Facility(const FacilityType &type, const string &settlementName)
       status(FacilityStatus::UNDER_CONSTRUCTIONS),
       timeLeft(type.getCost()) {}
 
-Facility::Facility(const Facility &other)
+Facility::Facility(const Facility &other)  // Copy constructor
     : FacilityType(other),
       settlementName(other.settlementName),
       status(other.status),
       timeLeft(other.timeLeft) {}
 
-Facility &Facility::operator=(const Facility &other) {
+Facility &Facility::operator=(
+    const Facility &other) {  // Copy assignment operator
     if (&other != this) {
         status = other.status;
         timeLeft = other.timeLeft;
     }
     return (*this);
 }
+// A lot of const fields, fix?
 
 const string &Facility::getSettlementName() const { return settlementName; }
 
 int Facility::getTimeLeft() const { return timeLeft; }
 
 FacilityStatus Facility::step() {
+    // Subtracting from the time left of the facilities under construction
+    cout << "Facility.step..." << endl;
     if (status == FacilityStatus::UNDER_CONSTRUCTIONS) {
         timeLeft--;
         if (timeLeft == 0) {
@@ -89,7 +96,7 @@ const FacilityStatus &Facility::getStatus() const { return status; }
 const string Facility::toString() const {
     string categoryString = "Life quality";
     if (category == FacilityCategory::ECONOMY) {
-        categoryString = "City";
+        categoryString = "Economy";
     } else if (category == FacilityCategory::ENVIRONMENT) {
         categoryString = "Environment";
     }

@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <vector>
+
 #include "SelectionPolicy.h"
 using namespace std;
 
@@ -19,7 +20,7 @@ Plan::Plan(const int planId, const Settlement &settlement,
       economy_score(0),
       environment_score(0) {}
 
-Plan::Plan(const Plan &other)
+Plan::Plan(const Plan &other)  // Copy constructor
     : plan_id(other.plan_id),
       settlement(other.settlement),
       selectionPolicy((*other.selectionPolicy).clone()),
@@ -31,7 +32,7 @@ Plan::Plan(const Plan &other)
       economy_score(other.economy_score),
       environment_score(other.environment_score) {}
 
-Plan &Plan::operator=(const Plan &other) {
+Plan &Plan::operator=(const Plan &other) {  // Copy assignment operator
     if (&other != this) {
         plan_id = other.plan_id;
         if (selectionPolicy) {
@@ -48,6 +49,7 @@ Plan &Plan::operator=(const Plan &other) {
     return *this;
     // check in running time
 }
+// Settlement name is const, fix?
 
 int Plan::getlifeQualityScore() const { return life_quality_score; }
 
@@ -60,17 +62,23 @@ void Plan::setSelectionPolicy(SelectionPolicy *selectionPolicy) {
 }
 
 void Plan::step() {
+    cout << "Plan.step..." << endl;
+
+    // Adding as many new facilities as the capacity allows
     while (status == PlanStatus::AVALIABLE) {
         FacilityType ft = (*selectionPolicy).selectFacility(facilityOptions);
-        Facility* toInsert = new Facility(ft, settlement.getName());
+        Facility *toInsert = new Facility(ft, settlement.getName());
         (*this).addFacility(toInsert);
     }
 
+    // Updating all of the facilities under construction
     int underConstructionSize = underConstruction.size();
     for (int i = 0; i < underConstructionSize; i++) {
         (*underConstruction[i]).step();
     }
 
+    // Relocating the facilities who have now finished construction,
+    // and updating the scores and the plan status accordingly
     for (int i = 0; i < underConstructionSize; i++) {
         if ((*underConstruction[i]).getTimeLeft() == 0) {
             facilities.push_back(underConstruction[i]);
@@ -80,69 +88,52 @@ void Plan::step() {
             environment_score += (*underConstruction[i]).getEnvironmentScore();
         }
     }
-
     for (int i = 0; i < underConstructionSize; i++) {
         if ((*underConstruction[i]).getTimeLeft() == 0) {
             underConstruction.erase(underConstruction.begin() + i);
-            i--;
+            i--;  // This is because when an item is removed, the remaining
+                  // items all move 1 index 'below'
         }
     }
 
+    // SettlementType settlementType = settlement.getType();
+    // int maxCapacity = 1;
+    // if (settlementType == SettlementType::CITY) {
+    //     maxCapacity = 2;
+    // } else if (settlementType == SettlementType::METROPOLIS) {
+    //     maxCapacity = 3;
+    // }
 
+    // int numOfFacilitiesToAdd = maxCapacity - underConstruction.size();
 
+    // vector<Facility *> temp;
+    // while (underConstruction.size() != 0) {
+    //     Facility *toInsert(underConstruction[underConstruction.size() - 1]);
+    //     FacilityStatus fs = (*toInsert).step();
 
+    //     if (fs == FacilityStatus::OPERATIONAL) {
+    //         facilities.push_back(toInsert);
+    //     } else {
+    //         temp.push_back(toInsert);
+    //     }
 
+    //     underConstruction.pop_back();
+    // }
 
+    // for (int i = 0; i < numOfFacilitiesToAdd; i++) {
+    //     Facility *f =
+    //         new Facility((*selectionPolicy).selectFacility(facilityOptions),
+    //                      settlement.getName());
+    //     // implement rule of 5
+    //     addFacility(f);
+    // }
 
-
-
-
-
-
-
-
-
-
-
-
-    SettlementType settlementType = settlement.getType();
-    int maxCapacity = 1;
-    if (settlementType == SettlementType::CITY) {
-        maxCapacity = 2;
-    } else if (settlementType == SettlementType::METROPOLIS) {
-        maxCapacity = 3;
-    }
-
-    int numOfFacilitiesToAdd = maxCapacity - underConstruction.size();
-
-    vector<Facility *> temp;
-    while (underConstruction.size() != 0) {
-        Facility *toInsert(underConstruction[underConstruction.size() - 1]);
-        FacilityStatus fs = (*toInsert).step();
-
-        if (fs == FacilityStatus::OPERATIONAL) {
-            facilities.push_back(toInsert);
-        } else {
-            temp.push_back(toInsert);
-        }
-
-        underConstruction.pop_back();
-    }
-
-    for (int i = 0; i < numOfFacilitiesToAdd; i++) {
-        Facility *f =
-            new Facility((*selectionPolicy).selectFacility(facilityOptions),
-                         settlement.getName());
-        // implement rule of 5
-        addFacility(f);
-    }
-
-    int size = underConstruction.size();
-    if (maxCapacity == size) {
-        status = PlanStatus::BUSY;
-    } else {
-        status = PlanStatus::AVALIABLE;
-    }
+    // int size = underConstruction.size();
+    // if (maxCapacity == size) {
+    //     status = PlanStatus::BUSY;
+    // } else {
+    //     status = PlanStatus::AVALIABLE;
+    // }
 }
 
 void Plan::printStatus() {
@@ -156,10 +147,11 @@ void Plan::printStatus() {
 const vector<Facility *> &Plan::getFacilities() const { return facilities; }
 
 void Plan::addFacility(Facility *facility) {
+    cout << "Plan.addFacility..." << endl;
+
     if (status == PlanStatus::BUSY) {
         throw invalid_argument("Cant add to busy plan");
     }
-
     underConstruction.push_back(facility);
 }
 
@@ -203,6 +195,4 @@ const string Plan::toString() const {
 
 const Settlement &Plan::getSettlement() { return settlement; }
 
-Plan::~Plan() {
-    delete selectionPolicy;
-}
+Plan::~Plan() { delete selectionPolicy; }

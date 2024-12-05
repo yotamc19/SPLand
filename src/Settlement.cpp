@@ -3,10 +3,11 @@
 Settlement::Settlement(const string &name, SettlementType type)
     : name(name), type(type) {}
 
-Settlement::Settlement(const Settlement &other)
+Settlement::Settlement(const Settlement &other)  // Copy constructor
     : name(other.name), type(other.type) {}
 
-Settlement &Settlement::operator=(const Settlement &other) {
+Settlement &Settlement::operator=(
+    const Settlement &other) {  // Copy assignment operator
     if (&other != this) {
         type = other.type;
     }

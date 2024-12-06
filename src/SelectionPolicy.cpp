@@ -12,18 +12,16 @@ NaiveSelection::NaiveSelection() : lastSelectedIndex(-1) {}
 const FacilityType &NaiveSelection::selectFacility(
     const vector<FacilityType> &facilitiesOptions) {
     // Selecting the next available facility
-    cout << toString() << endl;
-
     if (facilitiesOptions.size() == 0) {
-        throw std::invalid_argument("Recieved empty vector");
+        cout << "Error: No facilities to choose from" << endl;
+        const FacilityType* np = nullptr;
+        return *np;
     }
     lastSelectedIndex = (lastSelectedIndex + 1) % facilitiesOptions.size();
     return facilitiesOptions[lastSelectedIndex];
 }
 
-const string NaiveSelection::toString() const {
-    return "Naive selection policy";
-}
+const string NaiveSelection::toString() const { return "nai"; }
 
 NaiveSelection *NaiveSelection::clone() const {
     return new NaiveSelection(*this);
@@ -40,10 +38,10 @@ const FacilityType &BalancedSelection::selectFacility(
     const vector<FacilityType> &facilitiesOptions) {
     // Selecting the facility which results in the 'minimal distance' between
     // the scores
-    cout << toString() << endl;
-
     if (facilitiesOptions.size() == 0) {
-        throw std::invalid_argument("Recieved empty vector");
+        cout << "Error: No facilities to choose from" << endl;
+        const FacilityType* np = nullptr;
+        return *np;
     }
     int bestOptionIndex = 0, bestDistance = INT32_MAX;
     int size = facilitiesOptions.size();
@@ -68,9 +66,15 @@ const FacilityType &BalancedSelection::selectFacility(
     return facilitiesOptions[bestOptionIndex];
 }
 
-const string BalancedSelection::toString() const {
-    return "Balanced selection policy";
+void BalancedSelection::setScores(int potentialLifeQualityScore,
+                                  int potentialEconomyScore,
+                                  int potentialEnvironmentScore) {
+    LifeQualityScore = potentialLifeQualityScore;
+    EconomyScore = potentialEconomyScore;
+    EnvironmentScore = potentialEnvironmentScore;
 }
+
+const string BalancedSelection::toString() const { return "bal"; }
 
 BalancedSelection *BalancedSelection::clone() const {
     return new BalancedSelection(*this);
@@ -82,10 +86,10 @@ EconomySelection::EconomySelection() : lastSelectedIndex(-1) {}
 const FacilityType &EconomySelection::selectFacility(
     const vector<FacilityType> &facilitiesOptions) {
     // Selecting the next available facility which is also of "Economy" type
-    cout << toString() << endl;
-
     if (facilitiesOptions.size() == 0) {
-        throw std::invalid_argument("Recieved empty vector");
+        cout << "Error: No facilities to choose from" << endl;
+        const FacilityType* np = nullptr;
+        return *np;
     }
     lastSelectedIndex = (lastSelectedIndex + 1) % facilitiesOptions.size();
 
@@ -101,15 +105,15 @@ const FacilityType &EconomySelection::selectFacility(
     }
     // Checking if a fitting facility was reached
     if (!isReachedEconomy) {
-        throw std::invalid_argument("No economy facilities in the vector");
+        cout << "Error: No economy facilities" << endl;
+        const FacilityType* np = nullptr;
+        return *np;
     }
-    lastSelectedIndex = (i + lastSelectedIndex) % facilitiesOptions.size();
+    lastSelectedIndex = (i + lastSelectedIndex - 1) % facilitiesOptions.size();
     return facilitiesOptions[lastSelectedIndex];
 }
 
-const string EconomySelection::toString() const {
-    return "Economy selection policy";
-}
+const string EconomySelection::toString() const { return "eco"; }
 
 EconomySelection *EconomySelection::clone() const {
     return new EconomySelection(*this);
@@ -121,10 +125,10 @@ SustainabilitySelection::SustainabilitySelection() : lastSelectedIndex(-1) {}
 const FacilityType &SustainabilitySelection::selectFacility(
     const vector<FacilityType> &facilitiesOptions) {
     // Selecting the next available facility which is also of "Environment" type
-    cout << toString() << endl;
-
     if (facilitiesOptions.size() == 0) {
-        throw std::invalid_argument("Recieved empty vector");
+        cout << "Error: No facilities to choose from" << endl;
+        const FacilityType* np = nullptr;
+        return *np;
     }
     lastSelectedIndex = (lastSelectedIndex + 1) % facilitiesOptions.size();
 
@@ -141,15 +145,15 @@ const FacilityType &SustainabilitySelection::selectFacility(
     }
     // Checking if a fitting facility was reached
     if (!isReachedEnvironment) {
-        throw std::invalid_argument("No environment facilities in the vector");
+        cout << "Error: No environment facilities" << endl;
+        const FacilityType* np = nullptr;
+        return *np;
     }
     lastSelectedIndex = (i + lastSelectedIndex) % facilitiesOptions.size();
     return facilitiesOptions[lastSelectedIndex];
 }
 
-const string SustainabilitySelection::toString() const {
-    return "Sustainability selection policy";
-}
+const string SustainabilitySelection::toString() const { return "env"; }
 
 SustainabilitySelection *SustainabilitySelection::clone() const {
     return new SustainabilitySelection(*this);

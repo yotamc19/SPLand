@@ -1,3 +1,4 @@
+
 #include "Simulation.h"
 
 #include <fstream>
@@ -25,7 +26,7 @@ Simulation::Simulation(const string &configFilePath) {
             string name = parsedArgs[1];
             SettlementType type =
                 static_cast<SettlementType>(stoi(parsedArgs[2]));
-            Settlement s(name, type);
+            Settlement *s = new Settlement(name, type);
             settlements.push_back(s);
         } else if (argType == "facility") {
             string name = parsedArgs[1];
@@ -41,7 +42,7 @@ Simulation::Simulation(const string &configFilePath) {
         } else if (argType == "plan") {
             string settlementName = parsedArgs[1];
             // settlement name might not be in the simulation yet or at all
-            Settlement s(Simulation::getSettlement(settlementName));
+            Settlement &s = getSettlement(settlementName);
 
             if (parsedArgs[2] == "nai") {
                 NaiveSelection ns;
@@ -96,6 +97,48 @@ Simulation &Simulation::operator=(const Simulation &other) {
     return (*this);
 }
 
+Simulation::Simulation(Simulation &&other) noexcept
+    : isRunning(other.isRunning),
+      planCounter(other.planCounter),
+      actionsLog(move(other.actionsLog)),
+      plans(move(other.plans)),
+      settlements(move(other.settlements)),
+      facilitiesOptions(move(other.facilitiesOptions)) {
+    other.isRunning = false;
+    other.planCounter = 0;
+}
+
+Simulation &Simulation::operator=(Simulation &&other) noexcept {
+    if (&other != this) {
+        int actionsLogSize = actionsLog.size();
+        for (int i = 0; i < actionsLogSize; i++) {
+            delete actionsLog[i];
+        }
+        actionsLog.clear();
+
+        int settlementsSize = settlements.size();
+        for (int i = 0; i < settlementsSize; i++) {
+            delete settlements[i];
+        }
+        settlements.clear();
+
+        isRunning = other.isRunning;
+        planCounter = other.planCounter;
+        actionsLog = move(other.actionsLog);
+        plans = move(other.plans);
+        settlements = move(other.settlements);
+        facilitiesOptions = move(other.facilitiesOptions);
+        
+        other.isRunning = false;
+        other.planCounter = 0;
+        other.actionsLog.clear();
+        other.plans.clear();
+        other.settlements.clear();
+        other.facilitiesOptions.clear();
+    }
+    return *this;
+}
+
 void Simulation::start() {
     open();
     cout << "The simulation has started" << endl;
@@ -112,8 +155,8 @@ void Simulation::start() {
             action.act(*this);
         } else if (parsedArgs[0] == "plan") {
             string settlementName = parsedArgs[1];
-            string settlementPolicy = parsedArgs[2];
-            AddPlan action = AddPlan(settlementName, settlementPolicy);
+            string selectionPolicy = parsedArgs[2];
+            AddPlan action = AddPlan(settlementName, selectionPolicy);
             action.act(*this);
         } else if (parsedArgs[0] == "settlement") {
             string settlementName = parsedArgs[1];
@@ -161,23 +204,16 @@ void Simulation::start() {
 
 void Simulation::addPlan(const Settlement &settlement,
                          SelectionPolicy *selectionPolicy) {
-    cout << "Simulation.addPlan..." << endl;
-
     Plan p(planCounter, settlement, selectionPolicy, facilitiesOptions);
     plans.push_back(p);
     planCounter++;
 }
 
-void Simulation::addAction(BaseAction *action) {
-    cout << "Simulation.addAction..." << endl;
-    actionsLog.push_back(action);
-}
+void Simulation::addAction(BaseAction *action) { actionsLog.push_back(action); }
 
-bool Simulation::addSettlement(Settlement settlement) {
-    cout << "Simulation.addSettlement..." << endl;
-
+bool Simulation::addSettlement(Settlement *settlement) {
     bool isSettlementFound =
-        Simulation::isSettlementExists(settlement.getName());
+        Simulation::isSettlementExists((*settlement).getName());
     if (isSettlementFound) {
         return false;
     }
@@ -186,8 +222,6 @@ bool Simulation::addSettlement(Settlement settlement) {
 }
 
 bool Simulation::addFacility(FacilityType facility) {
-    cout << "Simulation.addFacility..." << endl;
-
     // Adding a facility only if it doesn't already exist
     bool isFacilityExists = false;
     int size = facilitiesOptions.size();
@@ -202,12 +236,22 @@ bool Simulation::addFacility(FacilityType facility) {
     return true;
 }
 
+bool Simulation::isPlanExists(int planId) {
+    int size = plans.size();
+    for (int i = 0; i < size; i++) {
+        if (plans[i].getPlanID() == planId) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool Simulation::isSettlementExists(const string &settlementName) {
     bool isSettlementFound = false;
     int size = settlements.size();
     // Searching for settlementName in settlements
     for (int i = 0; i < size && !isSettlementFound; i++) {
-        isSettlementFound = settlementName == settlements[i].getName();
+        isSettlementFound = settlementName == (*settlements[i]).getName();
     }
     return isSettlementFound;
 }
@@ -227,29 +271,32 @@ Settlement &Simulation::getSettlement(const string &settlementName) {
     int size = settlements.size();
     // Searching for settlementName in settlements
     for (int i = 0; i < size && !isSettlementFound; i++) {
-        isSettlementFound = settlementName == settlements[i].getName();
+        isSettlementFound = settlementName == (*settlements[i]).getName();
         if (isSettlementFound) {
-            Settlement &s(settlements[i]);
-            return s;
+            return *settlements[i];
         }
     }
-    throw invalid_argument(
-        "No settlement with this name exists in the simulation");
+    cout << "Error: No settlement with this name exists" << endl;
+    Settlement* np = nullptr;
+    return *np;
 }
 
+// Assuming the plan exists
 Plan &Simulation::getPlan(const int planID) {
     int size = plans.size();
-    if (planID >= size) {
-        throw invalid_argument("No plan with this planID exists");
+    int returnIndex = 0;
+    for (int i = 0; i < size; i++) {
+        if (plans[i].getPlanID() == planID) {
+            returnIndex = i;
+            break;
+        }
     }
-    return plans[planID];
+    return plans[returnIndex];
 }
 
 const vector<BaseAction *> &Simulation::getActionsLog() { return actionsLog; }
 
 void Simulation::step() {
-    cout << "Simulation.step..." << endl;
-
     int size = plans.size();
     for (int i = 0; i < size; i++) {
         plans[i].step();
@@ -262,7 +309,7 @@ void Simulation::close() {
     for (int i = 0; i < size; i++) {
         summary +=
             "PlanID: " + to_string(i) +
-            "\nSettlementName: " + plans[0].getSettlement().getName() +
+            // "\nSettlementName: " + plans[0].getSettlement().getName() +
             "\nLifeQualityScore: " + to_string(plans[0].getlifeQualityScore()) +
             "\nEconomyScore: " + to_string(plans[0].getEconomyScore()) +
             "\nEnvironmentScore: " + to_string(plans[0].getEnvironmentScore()) +

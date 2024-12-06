@@ -32,6 +32,7 @@ class BalancedSelection : public SelectionPolicy {
                       int EnvironmentScore);
     const FacilityType& selectFacility(
         const vector<FacilityType>& facilitiesOptions) override;
+    void setScores(int potentialLifeQualityScore, int potentialEconomyScore, int potentialEnvironmentScore);
     const string toString() const override;
     BalancedSelection* clone() const override;
     ~BalancedSelection() override = default;

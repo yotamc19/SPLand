@@ -22,7 +22,7 @@
                 }
             ],
             "preLaunchTask": "build",
-            "miDebuggerPath": "/usr/bin/gdb.o"
+            "miDebuggerPath": "/usr/local/bin/gdb"
         }
     ]
 }

@@ -21,7 +21,7 @@ class FacilityType {
                  const int price, const int lifeQuality_score,
                  const int economy_score, const int environment_score);
     FacilityType(const FacilityType& other);
-    FacilityType& operator=(const FacilityType& other); //COME BACK TO THIS
+    FacilityType& operator=(const FacilityType& other);
     const string &getName() const;
     int getCost() const;
     int getLifeQualityScore() const;

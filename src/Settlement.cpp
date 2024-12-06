@@ -1,4 +1,5 @@
 #include "Settlement.h"
+#include <iostream>
 
 Settlement::Settlement(const string &name, SettlementType type)
     : name(name), type(type) {}
@@ -25,6 +26,5 @@ const string Settlement::toString() const {
     } else if (type == SettlementType::METROPOLIS) {
         typeString = "Metropolis";
     }
-
     return "Settlement Name: " + name + ", Type: " + typeString;
 }

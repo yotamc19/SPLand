@@ -13,20 +13,23 @@ class SelectionPolicy;
 
 class Simulation {
    public:
-    Simulation(const string &configFilePath);
+    Simulation(const string& configFilePath);
     Simulation(const Simulation& other);
-    Simulation& operator=(const Simulation& other); //COME BACK
+    Simulation& operator=(const Simulation& other);
+    Simulation(Simulation&& other) noexcept;
+    Simulation& operator=(Simulation&& other) noexcept;
     void start();
-    void addPlan(const Settlement &settlement,
-                 SelectionPolicy *selectionPolicy);
-    void addAction(BaseAction *action);
-    bool addSettlement(Settlement settlement);
+    void addPlan(const Settlement& settlement,
+                 SelectionPolicy* selectionPolicy);
+    void addAction(BaseAction* action);
+    bool addSettlement(Settlement* settlement);
     bool addFacility(FacilityType facility);
-    bool isSettlementExists(const string &settlementName);
-    bool isFacilityExists(const string &facilityName);
-    Settlement &getSettlement(const string &settlementName);
-    Plan &getPlan(const int planID);
-    const vector<BaseAction*> &getActionsLog();
+    bool isPlanExists(int planId);
+    bool isSettlementExists(const string& settlementName);
+    bool isFacilityExists(const string& facilityName);
+    Settlement& getSettlement(const string& settlementName);
+    Plan& getPlan(const int planID);
+    const vector<BaseAction*>& getActionsLog();
     void step();
     void close();
     void open();
@@ -35,8 +38,8 @@ class Simulation {
    private:
     bool isRunning;
     int planCounter;  // For assigning unique plan IDs
-    vector<BaseAction *> actionsLog;
+    vector<BaseAction*> actionsLog;
     vector<Plan> plans;
-    vector<Settlement> settlements;
+    vector<Settlement*> settlements;
     vector<FacilityType> facilitiesOptions;
 };

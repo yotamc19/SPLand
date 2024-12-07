@@ -31,6 +31,7 @@ class Plan {
     void printStatus();
     const vector<Facility *> &getFacilities() const;
     void addFacility(Facility *facility);
+    const string getSettlementName() const;
     const string toString() const;
     ~Plan();
 

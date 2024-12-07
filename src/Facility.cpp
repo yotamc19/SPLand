@@ -74,8 +74,6 @@ Facility &Facility::operator=(
 }
 // A lot of const fields, fix?
 
-const string &Facility::getSettlementName() const { return settlementName; }
-
 int Facility::getTimeLeft() const { return timeLeft; }
 
 FacilityStatus Facility::step() {

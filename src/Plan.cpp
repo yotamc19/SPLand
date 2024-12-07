@@ -188,8 +188,10 @@ void Plan::step() {
     for (int i = 0; i < underConstructionSize; i++) {
         if ((*underConstruction[i]).getTimeLeft() == 0) {
             underConstruction.erase(underConstruction.begin() + i);
-            i--;  // This is because when an item is removed, the remaining
-                  // items all move 1 index 'below'
+            if (i > 0) {
+                i--;  // This is because when an item is removed, the remaining
+                      // items all move 1 index 'below'
+            }
         }
     }
 }
@@ -217,6 +219,8 @@ void Plan::addFacility(Facility *facility) {
     }
 }
 
+const string Plan::getSettlementName() const { return settlement.getName(); }
+
 const string Plan::toString() const {
     string stringStatus = "AVAILABLE";
     if (status == PlanStatus::BUSY) {
@@ -237,7 +241,7 @@ const string Plan::toString() const {
     }
 
     string finalStr = "PlanID: " + to_string(plan_id) +
-                      "\nSettlementName: " + settlement.getName() +
+                      "\nSettlementName: " + getSettlementName() +
                       "\nPlanStatus: " + stringStatus +
                       "\nSelectionPolicy: " + (*selectionPolicy).toString() +
                       "\nLifeQualityScore: " + to_string(life_quality_score) +

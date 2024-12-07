@@ -56,7 +56,7 @@ void AddPlan::act(Simulation& simulation) {
     // Checking if there is already a plan for said settlement?
     bool isSettlementExists = simulation.isSettlementExists(settlementName);
     if (!isSettlementExists) {
-        error("No settlement exists in the simulation");
+        error("Error: No settlement exists in the simulation");
         simulation.addAction((*this).clone());
         return;
     }
@@ -65,7 +65,6 @@ void AddPlan::act(Simulation& simulation) {
     Settlement& s = simulation.getSettlement(settlementName);
     if (selectionPolicy == "nai") {
         NaiveSelection* ns = new NaiveSelection();
-        ;
         simulation.addPlan(s, ns);
     } else if (selectionPolicy == "bal") {
         BalancedSelection* bs = new BalancedSelection(0, 0, 0);
@@ -75,7 +74,6 @@ void AddPlan::act(Simulation& simulation) {
         simulation.addPlan(s, es);
     } else {
         SustainabilitySelection* ss = new SustainabilitySelection();
-        ;
         simulation.addPlan(s, ss);
     }
     complete();
@@ -216,9 +214,7 @@ void PrintActionsLog::act(Simulation& simulation) {
     vector<BaseAction*> actions = simulation.getActionsLog();
     int actionsSize =
         static_cast<vector<BaseAction*>::size_type>(actions.size());
-    cout << "actionsSize: " + to_string(actionsSize) << endl;
     for (int i = 0; i < actionsSize; i++) {
-        cout << "kululululu" << endl;
         cout << (*actions[i]).toString() << endl;
     }
     complete();
@@ -270,7 +266,7 @@ void RestoreSimulation::act(Simulation& simulation) {
     if (backup == nullptr) {
         error("No backup was created");
     } else {
-        simulation = Simulation(*backup);
+        simulation = *backup;
         complete();
     }
     simulation.addAction((*this).clone());

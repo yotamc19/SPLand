@@ -41,11 +41,10 @@ Plan::Plan(const Plan &other)  // Copy constructor
 
 Plan &Plan::operator=(const Plan &other) {  // Copy assignment operator
     if (&other != this) {
+        delete selectionPolicy;
+
         plan_id = other.plan_id;
-        if (selectionPolicy) {
-            delete selectionPolicy;
-        }
-        selectionPolicy = (*other.selectionPolicy).clone();  // CHECK THIS
+        selectionPolicy = (*other.selectionPolicy).clone();
         status = other.status;
         facilities = other.facilities;
         underConstruction = other.underConstruction;
@@ -57,7 +56,6 @@ Plan &Plan::operator=(const Plan &other) {  // Copy assignment operator
         potenitial_environment_score = other.potenitial_environment_score;
     }
     return *this;
-    // check in running time
 }
 
 Plan::Plan(Plan &&other) noexcept
@@ -147,6 +145,7 @@ int Plan::getPotenitialEnvironmentScore() const {
 }
 
 void Plan::setSelectionPolicy(SelectionPolicy *selectionPolicy) {
+    delete (*this).selectionPolicy;
     (*this).selectionPolicy = selectionPolicy;
 }
 
@@ -165,7 +164,10 @@ void Plan::step() {
         potenitial_economy_score += ft.getEconomyScore();
         potenitial_environment_score += ft.getEnvironmentScore();
         Facility *toInsert = new Facility(ft, settlement.getName());
+        cout << "INSERT: " + (*toInsert).getName() << endl;
+        ////////// COME BACK
         addFacility(toInsert);
+        delete toInsert; //this causes issues
     }
 
     // Updating all of the facilities under construction
@@ -185,7 +187,7 @@ void Plan::step() {
             environment_score += (*underConstruction[i]).getEnvironmentScore();
         }
     }
-    for (int i = 0; i < underConstructionSize; i++) {
+    for (int i = 0; i < (int)underConstruction.size(); i++) {
         if ((*underConstruction[i]).getTimeLeft() == 0) {
             underConstruction.erase(underConstruction.begin() + i);
             if (i > 0) {

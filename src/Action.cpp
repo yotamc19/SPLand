@@ -9,7 +9,7 @@ using namespace std;
 extern Simulation* backup;
 
 // BASE_ACTION:
-BaseAction::BaseAction() {}
+BaseAction::BaseAction() : errorMsg(""), status(ActionStatus::COMPLETED) {}
 
 ActionStatus BaseAction::getStatus() const { return status; }
 
@@ -63,19 +63,21 @@ void AddPlan::act(Simulation& simulation) {
 
     // Building a new settlement and adding it with the right selection policy
     Settlement& s = simulation.getSettlement(settlementName);
+    SelectionPolicy* sp = nullptr;
     if (selectionPolicy == "nai") {
-        NaiveSelection* ns = new NaiveSelection();
-        simulation.addPlan(s, ns);
+        sp = new NaiveSelection();
     } else if (selectionPolicy == "bal") {
-        BalancedSelection* bs = new BalancedSelection(0, 0, 0);
-        simulation.addPlan(s, bs);
+        sp = new BalancedSelection(0, 0, 0);
     } else if (selectionPolicy == "eco") {
-        EconomySelection* es = new EconomySelection();
-        simulation.addPlan(s, es);
+        sp = new EconomySelection();
+    } else if (selectionPolicy == "env") {
+        sp = new SustainabilitySelection();
     } else {
-        SustainabilitySelection* ss = new SustainabilitySelection();
-        simulation.addPlan(s, ss);
+        error("Error: Not a valid selection policy");
+        simulation.addAction((*this).clone());
+        return;
     }
+    simulation.addPlan(s, sp);
     complete();
     simulation.addAction((*this).clone());
 }
@@ -95,7 +97,7 @@ void AddSettlement::act(Simulation& simulation) {
     // Checking if the settlement is already in the simulation
     bool isSettlementExists = simulation.isSettlementExists(settlementName);
     if (isSettlementExists) {
-        error("This settlemet exists already");
+        error("Error: This settlemet exists already");
         simulation.addAction((*this).clone());
         return;
     }
@@ -130,7 +132,7 @@ void AddFacility::act(Simulation& simulation) {
     // Checking if the facility is already in the simulation
     bool isFacilityExists = simulation.isFacilityExists(facilityName);
     if (isFacilityExists) {
-        error("This facility exists already");
+        error("Error: This facility exists already");
         simulation.addAction((*this).clone());
         return;
     }
@@ -179,20 +181,18 @@ ChangePlanPolicy::ChangePlanPolicy(const int planId, const string& newPolicy)
 
 void ChangePlanPolicy::act(Simulation& simulation) {
     // Finding the correct policy to which to change, and changing accordingly
+    SelectionPolicy* sp = nullptr;
     Plan p(simulation.getPlan(planId));
     if (newPolicy == "nai") {
-        NaiveSelection ns;
-        p.setSelectionPolicy(&ns);
+        sp = new NaiveSelection();
     } else if (newPolicy == "bal") {
-        BalancedSelection bs(0, 0, 0);
-        p.setSelectionPolicy(&bs);
+        sp = new BalancedSelection(0, 0, 0);
     } else if (newPolicy == "eco") {
-        EconomySelection es;
-        p.setSelectionPolicy(&es);
+        sp = new EconomySelection();
     } else {
-        SustainabilitySelection ss;
-        p.setSelectionPolicy(&ss);
+        sp = new SustainabilitySelection();
     }
+    simulation.getPlan(planId).setSelectionPolicy(sp);
     complete();
     simulation.addAction(clone());
 }
@@ -264,7 +264,7 @@ RestoreSimulation::RestoreSimulation() {}
 
 void RestoreSimulation::act(Simulation& simulation) {
     if (backup == nullptr) {
-        error("No backup was created");
+        error("Error: No backup was created");
     } else {
         simulation = *backup;
         complete();

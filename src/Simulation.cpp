@@ -12,13 +12,18 @@
 #include "Settlement.h"
 using namespace std;
 
-Simulation::Simulation(const string &configFilePath) {
+Simulation::Simulation(const string &configFilePath)
+    : isRunning(true),
+      planCounter(0),
+      actionsLog(),
+      plans(),
+      settlements(),
+      facilitiesOptions() {
     ifstream configFile(configFilePath);
     string line;
     planCounter = 0;
     // Initiating the values given from the configFile into Simulation's fields
     while (getline(configFile, line)) {
-        cout << line << endl;
         vector<string> parsedArgs = Auxiliary::parseArguments(line);
         string argType = parsedArgs[0];
 
@@ -42,25 +47,21 @@ Simulation::Simulation(const string &configFilePath) {
         } else if (argType == "plan") {
             string settlementName = parsedArgs[1];
             // settlement name might not be in the simulation yet or at all
+            SelectionPolicy* sp = nullptr;
             Settlement &s = getSettlement(settlementName);
 
             if (parsedArgs[2] == "nai") {
-                NaiveSelection ns;
-                Plan *p = new Plan(planCounter, s, &ns, facilitiesOptions);
-                plans.push_back(*p);
+                sp = new NaiveSelection();
             } else if (parsedArgs[2] == "bal") {
-                BalancedSelection bs(0, 0, 0);
-                Plan *p = new Plan(planCounter, s, &bs, facilitiesOptions);
-                plans.push_back(*p);
+                sp = new BalancedSelection(0, 0, 0);
             } else if (parsedArgs[2] == "eco") {
-                EconomySelection es;
-                Plan *p = new Plan(planCounter, s, &es, facilitiesOptions);
-                plans.push_back(*p);
+                sp = new EconomySelection();
             } else if (parsedArgs[2] == "env") {
-                SustainabilitySelection ss;
-                Plan *p = new Plan(planCounter, s, &ss, facilitiesOptions);
-                plans.push_back(*p);
+                sp = new SustainabilitySelection();
             }
+            Plan *p = new Plan(planCounter, s, sp, facilitiesOptions);
+            plans.push_back(*p);
+            delete p;
             planCounter++;
         }
     }
@@ -148,6 +149,7 @@ Simulation &Simulation::operator=(Simulation &&other) noexcept {
 void Simulation::start() {
     open();
     cout << "The simulation has started" << endl;
+    BackupSimulation* backupAction = nullptr;
 
     while (isRunning) {
         string line;
@@ -204,8 +206,11 @@ void Simulation::start() {
             Close action = Close();
             action.act(*this);
         } else if (parsedArgs[0] == "backup" && parsedArgsSize == 1) {
-            BackupSimulation action = BackupSimulation();
-            action.act(*this);
+            if (backupAction != nullptr) {
+                delete backupAction;
+            }
+            backupAction = new BackupSimulation();
+            (*backupAction).act(*this);
         } else if (parsedArgs[0] == "restore" && parsedArgsSize == 1) {
             RestoreSimulation action = RestoreSimulation();
             action.act(*this);
@@ -213,6 +218,7 @@ void Simulation::start() {
             cout << "Please enter a valid command" << endl;
         }
     }
+    delete backupAction;
 }
 
 void Simulation::addPlan(const Settlement &settlement,
@@ -342,4 +348,10 @@ Simulation::~Simulation() {
         delete actionsLog[i];
     }
     actionsLog.clear();
+
+    int settlementsSize = settlements.size();
+    for (int i = 0; i < settlementsSize; i++) {
+        delete settlements[i];
+    }
+    settlements.clear();
 }

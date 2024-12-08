@@ -15,18 +15,9 @@ FacilityType::FacilityType(const string &name, const FacilityCategory category,
       economy_score(economy_score),
       environment_score(environment_score) {}
 
-FacilityType::FacilityType(const FacilityType &other)  // Copy constructor
-    : name(other.name),
-      category(other.category),
-      price(other.price),
-      lifeQuality_score(other.lifeQuality_score),
-      economy_score(other.economy_score),
-      environment_score(other.environment_score) {}
-
 FacilityType &FacilityType::operator=(const FacilityType &other) {
     return (*this);
 }
-// SettlementName is const, fix?
 
 const string &FacilityType::getName() const { return name; }
 
@@ -58,12 +49,6 @@ Facility::Facility(const FacilityType &type, const string &settlementName)
       status(FacilityStatus::UNDER_CONSTRUCTIONS),
       timeLeft(price) {}
 
-Facility::Facility(const Facility &other)  // Copy constructor
-    : FacilityType(other),
-      settlementName(other.settlementName),
-      status(other.status),
-      timeLeft(other.timeLeft) {}
-
 Facility &Facility::operator=(
     const Facility &other) {  // Copy assignment operator
     if (&other != this) {
@@ -72,7 +57,6 @@ Facility &Facility::operator=(
     }
     return (*this);
 }
-// A lot of const fields, fix?
 
 int Facility::getTimeLeft() const { return timeLeft; }
 
@@ -99,3 +83,5 @@ const string Facility::toString() const {
 
     return "FacilityName: " + name + "\nFacilityStatus: " + stringStatus;
 }
+
+Facility *Facility::clone() { return new Facility(*this); }

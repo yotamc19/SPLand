@@ -16,9 +16,10 @@ class Plan {
          SelectionPolicy *selectionPolicy,
          const vector<FacilityType> &facilityOptions);
     Plan(const Plan& other);
-    Plan& operator=(const Plan& other);
+    Plan(const Plan& other ,const Settlement &settlement);
+    Plan& operator=(const Plan& other) = delete;
     Plan(Plan&& other) noexcept;
-    Plan& operator=(Plan&& other) noexcept;
+    Plan& operator=(Plan&& other) = delete;
     int getPlanID() const;
     int getlifeQualityScore() const;
     int getEconomyScore() const;
@@ -31,6 +32,7 @@ class Plan {
     void printStatus();
     const vector<Facility *> &getFacilities() const;
     void addFacility(Facility *facility);
+    const Settlement& getSettlement() const;
     const string getSettlementName() const;
     const string toString() const;
     ~Plan();

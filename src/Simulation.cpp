@@ -21,7 +21,6 @@ Simulation::Simulation(const string &configFilePath)
       facilitiesOptions() {
     ifstream configFile(configFilePath);
     string line;
-    planCounter = 0;
     // Initiating the values given from the configFile into Simulation's fields
     while (getline(configFile, line)) {
         vector<string> parsedArgs = Auxiliary::parseArguments(line);
@@ -46,8 +45,7 @@ Simulation::Simulation(const string &configFilePath)
             facilitiesOptions.push_back(ft);
         } else if (argType == "plan") {
             string settlementName = parsedArgs[1];
-            // settlement name might not be in the simulation yet or at all
-            SelectionPolicy* sp = nullptr;
+            SelectionPolicy *sp = nullptr;
             Settlement &s = getSettlement(settlementName);
 
             if (parsedArgs[2] == "nai") {
@@ -70,20 +68,55 @@ Simulation::Simulation(const string &configFilePath)
 Simulation::Simulation(const Simulation &other)
     : isRunning(other.isRunning),
       planCounter(other.planCounter),
-      actionsLog(other.actionsLog),
-      plans(other.plans),
-      settlements(other.settlements),
-      facilitiesOptions(other.facilitiesOptions) {}
+      actionsLog(),
+      plans(),
+      settlements(),
+      facilitiesOptions() {
+    for (const auto &action : other.actionsLog) {
+        actionsLog.push_back((*action).clone());
+    }
+
+    for (const auto &settlement : other.settlements) {
+        settlements.push_back(new Settlement(*settlement));
+    }
+
+    for (auto facil : other.facilitiesOptions)
+        facilitiesOptions.push_back(facil);
+
+    int plansSize = other.plans.size();
+    for (int i = 0; i < plansSize; i++) {
+        string name = other.plans[i].getSettlementName();
+        for (const auto &settlement : settlements) {
+            if ((*settlement).getName() == name) {
+                plans.emplace_back(Plan(other.plans[i], *settlement));
+            }
+        }
+    }
+}
 
 Simulation &Simulation::operator=(const Simulation &other) {
     if (&other != this) {
         isRunning = other.isRunning;
         planCounter = other.planCounter;
-        plans = other.plans;
-        facilitiesOptions = other.facilitiesOptions;
 
-        while ((int)actionsLog.size() > 0) {
-            actionsLog.erase(actionsLog.begin());
+        int facilitiesOptionsSize = other.facilitiesOptions.size();
+        for (int i = 0; i < facilitiesOptionsSize; i++) {
+            facilitiesOptions.push_back(other.facilitiesOptions[i]);
+        }
+
+        plans.clear();
+        int plansSize = other.plans.size();
+        for (int i = 0; i < plansSize; i++) {
+            string name = other.plans[i].getSettlementName();
+            for (const auto &settlement : settlements) {
+                if ((*settlement).getName() == name) {
+                    plans.emplace_back(Plan(other.plans[i], *settlement));
+                }
+            }
+        }
+
+        for (auto *action : actionsLog) {
+            delete action;
         }
         actionsLog.clear();
         int otherActionsLogSize = other.actionsLog.size();
@@ -91,13 +124,13 @@ Simulation &Simulation::operator=(const Simulation &other) {
             actionsLog.push_back((*other.actionsLog[i]).clone());
         }
 
-        while ((int)settlements.size() > 0) {
-            settlements.erase(settlements.begin());
+        for (auto settlement : settlements) {
+            delete settlement;
         }
         settlements.clear();
         int settlementsSize = other.settlements.size();
         for (int i = 0; i < settlementsSize; i++) {
-            Settlement *s = other.settlements[i];
+            Settlement *s = new Settlement(*other.settlements[i]);
             settlements.push_back(s);
         }
     }
@@ -149,7 +182,6 @@ Simulation &Simulation::operator=(Simulation &&other) noexcept {
 void Simulation::start() {
     open();
     cout << "The simulation has started" << endl;
-    BackupSimulation* backupAction = nullptr;
 
     while (isRunning) {
         string line;
@@ -206,11 +238,8 @@ void Simulation::start() {
             Close action = Close();
             action.act(*this);
         } else if (parsedArgs[0] == "backup" && parsedArgsSize == 1) {
-            if (backupAction != nullptr) {
-                delete backupAction;
-            }
-            backupAction = new BackupSimulation();
-            (*backupAction).act(*this);
+            BackupSimulation action = BackupSimulation();
+            action.act(*this);
         } else if (parsedArgs[0] == "restore" && parsedArgsSize == 1) {
             RestoreSimulation action = RestoreSimulation();
             action.act(*this);
@@ -218,7 +247,6 @@ void Simulation::start() {
             cout << "Please enter a valid command" << endl;
         }
     }
-    delete backupAction;
 }
 
 void Simulation::addPlan(const Settlement &settlement,
@@ -244,13 +272,12 @@ bool Simulation::addFacility(FacilityType facility) {
     // Adding a facility only if it doesn't already exist
     bool isFacilityExists = false;
     int size = facilitiesOptions.size();
-    for (int i = 0; i < size && !isFacilityExists; i++) {  //
-        isFacilityExists =
-            facility.getName() == facilitiesOptions[i].getName();  //
-    }  //
-    if (isFacilityExists) {  //
-        return false;        //
-    }  // Change to isFacilityExists()?
+    for (int i = 0; i < size && !isFacilityExists; i++) {
+        isFacilityExists = facility.getName() == facilitiesOptions[i].getName();
+    }
+    if (isFacilityExists) {
+        return false;
+    }
     facilitiesOptions.push_back(facility);
     return true;
 }
@@ -345,13 +372,22 @@ void Simulation::open() { isRunning = true; }
 Simulation::~Simulation() {
     int actionsLogSize = actionsLog.size();
     for (int i = 0; i < actionsLogSize; i++) {
-        delete actionsLog[i];
+        if (actionsLog[i]) {
+            delete actionsLog[i];
+        }
+        actionsLog[i] = nullptr;
     }
     actionsLog.clear();
 
     int settlementsSize = settlements.size();
     for (int i = 0; i < settlementsSize; i++) {
-        delete settlements[i];
+        if (settlements[i]) {
+            delete settlements[i];
+        }
+        settlements[i] = nullptr;
     }
     settlements.clear();
+
+    plans.clear();
+    facilitiesOptions.clear();
 }

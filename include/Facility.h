@@ -20,7 +20,7 @@ class FacilityType {
     FacilityType(const string &name, const FacilityCategory category,
                  const int price, const int lifeQuality_score,
                  const int economy_score, const int environment_score);
-    FacilityType(const FacilityType& other);
+    FacilityType(const FacilityType& other) = default;
     FacilityType& operator=(const FacilityType& other);
     const string &getName() const;
     int getCost() const;
@@ -46,7 +46,7 @@ class Facility : public FacilityType {
              const int lifeQuality_score, const int economy_score,
              const int environment_score);
     Facility(const FacilityType &type, const string &settlementName);
-    Facility(const Facility& other);
+    Facility(const Facility& other) = default;
     Facility& operator=(const Facility& other);
     const string &getSettlementName() const;
     int getTimeLeft() const;
@@ -54,6 +54,7 @@ class Facility : public FacilityType {
     void setStatus(FacilityStatus status);
     const FacilityStatus &getStatus() const;
     const string toString() const;
+    virtual Facility* clone();
     ~Facility() = default;
 
    private:

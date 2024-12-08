@@ -233,8 +233,8 @@ const string PrintActionsLog::toString() const {
 Close::Close() {}
 
 void Close::act(Simulation& simulation) {
-    simulation.addAction((*this).clone());
     complete();
+    simulation.addAction((*this).clone());
     simulation.close();
 }
 
@@ -246,9 +246,12 @@ const string Close::toString() const { return "close " + statusToString(); }
 BackupSimulation::BackupSimulation() {}
 
 void BackupSimulation::act(Simulation& simulation) {
+    if (backup != nullptr) {
+        delete backup;
+    }
     backup = new Simulation(simulation);
-    complete();
     simulation.addAction((*this).clone());
+    complete();
 }
 
 BackupSimulation* BackupSimulation::clone() const {
@@ -267,6 +270,7 @@ void RestoreSimulation::act(Simulation& simulation) {
         error("Error: No backup was created");
     } else {
         simulation = *backup;
+
         complete();
     }
     simulation.addAction((*this).clone());

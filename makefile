@@ -1,6 +1,6 @@
 FLAGS = -g -Wall -Weffc++ -std=c++11 -Iinclude
 
-all: clean compile link run
+all: clean compile link
 
 clean: 
 	rm -f bin/*
